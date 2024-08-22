@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import { v4 as uuidv4 } from "uuid";
+import "react-toastify/dist/ReactToastify.css";
 
 const Manager = () => {
   // Form Handling - using useState hook
@@ -22,26 +23,66 @@ const Manager = () => {
   // for password - userRef hook
   const passwordRef = useRef();
 
-  // for copy Text - useRef hook
-  const copyRef = useRef(null);
-
   // Show password
   const showPassword = () => {
     // Toggle function between - eye and eyecross
     if (ref.current.src.includes("icons/eyecross.png")) {
-        ref.current.src = "icons/eye.png";
-        passwordRef.current.type = "password"
+      ref.current.src = "icons/eye.png";
+      passwordRef.current.type = "password";
     } else {
-        ref.current.src = "icons/eyecross.png";
-        passwordRef.current.type = "text"  
+      ref.current.src = "icons/eyecross.png";
+      passwordRef.current.type = "text";
     }
   };
 
   // Saving Password - on local storage
   const savePaswsword = () => {
-    setPasswordArray([...passwordArray, form]);
-    localStorage.setItem("passwords", JSON.stringify([...passwordArray, form]));
-    console.log(passwordArray);
+    if(form.site.length > 0 && form.username.length > 0 && form.password.length > 3) {
+
+      setPasswordArray([...passwordArray, { ...form, id: uuidv4() }]);
+      localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]));
+      console.log(passwordArray);
+      setForm({ site: "", username: "", password: "" })
+      toast("Password saved!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    } else {
+        toast('Error: Invalid input!')
+    }
+  };
+
+  // Edit Password
+  const editPassword = (id) => {
+    console.log("Editing password with id", id);
+    setForm(passwordArray.filter(i=>i.id===id)[0])
+    setPasswordArray(passwordArray.filter(item=>item.id!==id))
+  };
+  
+  // Delete Password
+  const deletePassword = (id) => {
+    console.log("Deleting password with id", id);
+    let c = confirm("Do you really want to delete this password")
+    if(c){
+      setPasswordArray(passwordArray.filter(item=>item.id!==id));
+      localStorage.setItem("passwords", JSON.stringify(passwordArray.filter(item=>item.id!==id)));
+      toast("Password deleted!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
   };
 
   // Handling forms
@@ -51,7 +92,7 @@ const Manager = () => {
 
   // Copy Text
   const copyText = (text) => {
-    toast('Copied to clipboard!', {
+    toast("Copied to clipboard!", {
       position: "top-right",
       autoClose: 5000,
       hideProgressBar: false,
@@ -60,36 +101,34 @@ const Manager = () => {
       draggable: true,
       progress: undefined,
       theme: "light",
-  });
+    });
     // Write the text to the clipboard
-    navigator.clipboard.writeText(text)
-        
-}
-
+    navigator.clipboard.writeText(text);
+  };
 
   return (
     <>
       <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-                transition="Bounce"
-            />
-            {/* Same as */}
-            <ToastContainer />
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition="Bounce"
+      />
+      {/* Same as */}
+      <ToastContainer />
 
       {/* Background - ibelick  */}
-      <div className="absolute top-0 z-[-2] h-full w-full bg-slate-200 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
+      {/* <div className="absolute top-0 z-[-2] h-full w-full bg-slate-200 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div> */}
 
       {/* Manager */}
-      <div className=" mycontainer">
+      <div className=" p-2 md:p-0 md:mycontainer min-h-[87.6vh]">
         <h1 className="text-4xl font-bold text-center">
           <span className="text-green-700">&lt;</span>
           Pass
@@ -107,8 +146,9 @@ const Manager = () => {
             placeholder="Enter Website URL"
             type="text"
             name="site"
+            id="site"
           />
-          <div className="flex w-full justify-between gap-8">
+          <div className="flex flex-col md:flex-row w-full justify-between gap-8">
             {/* Username  */}
             <input
               value={form.username}
@@ -117,6 +157,7 @@ const Manager = () => {
               placeholder="Enter Username"
               type="text"
               name="username"
+              id="username"
             />
             {/* Password  */}
             <div className="relative">
@@ -128,6 +169,7 @@ const Manager = () => {
                 placeholder="Enter Password"
                 type="password"
                 name="password"
+                id="password"
               />
               <span
                 className="absolute right-[3px] top-[3px] cursor-pointer"
@@ -147,113 +189,109 @@ const Manager = () => {
           {/* Add Button - for password */}
           <button
             onClick={savePaswsword}
-            className="flex justify-center items-center gap-2 bg-green-500 rounded-full px-8 py-2 w-fit border-2 border-green-500"
+            className="flex justify-center items-center gap-2 bg-green-500 rounded-full px-8 py-1 w-fit border border-green-800"
           >
             <lord-icon
               src="https://cdn.lordicon.com/jgnvfzqg.json"
               trigger="hover"
               colors="primary:#242424"
             ></lord-icon>
-            Add Password
+            Save
           </button>
         </div>
 
         {/* Displaying passwords from local storage */}
-        {/* <div className="passwords">
+        <div className="passwords">
           <h2 className="font-bold text-2xl py-4">Your Passwords</h2>
-          {passwordArray.length === 0 && <div>No Passwords to show</div>}
-          {passwordArray.length != 0 && 
-            <table className="table-auto w-full rounded-md overflow-hidden">
+          {passwordArray.length === 0 && <div> No passwords to show</div>}
+          {passwordArray.length != 0 && (
+            <table className="table-auto w-full rounded-md overflow-hidden mb-10">
               <thead className="bg-green-800 text-white">
                 <tr>
-                  <th className="py-2">Site Name</th>
+                  <th className="py-2">Site</th>
                   <th className="py-2">Username</th>
                   <th className="py-2">Password</th>
+                  <th className="py-2">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-green-100">
-              {passwordArray.map((item, index) => {
-                  return <tr key={index}>
-                    <td className=" relative py-2 border  border-white text-center w-32">
-                    <a href={item.site} target="_blank">{item.site}</a>
-                      <button ref={copyRef} className="size-7 cursor-pointer absolute top-0 right-0 text-gray-500" onClick={() => { copyText(item.site) }}>copy</button></td>
-                    <td className="relative py-2 border  border-white text-center w-32">{item.username} 
-                      <button ref={copyRef} className="size-7 cursor-pointer absolute top-0 right-0 text-gray-500" onClick={()=> { copyText(item.username) }}>copy</button></td>
-                    <td className="relative py-2 border  border-white text-center w-32">{item.password} 
-                      <button ref={copyRef} className="size-7 cursor-pointer absolute top-0 right-2 text-gray-500" onClick={()=> { copyText(item.password) }}>copy</button></td>
-                  </tr>;
+                {passwordArray.map((item, index) => {
+                  return (
+                    <tr key={index}>
+                      <td className="py-2 border border-white text-center">
+                        <div className=" relative flex items-center justify-center ">
+                          <a href={item.site} target="_blank">
+                            {item.site}
+                          </a>
+                          <div
+                            className="size-7 cursor-pointer absolute top-0 right-0 text-gray-500"
+                            onClick={() => {
+                              copyText(item.site);
+                            }}
+                          >
+                            copy
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-2 border border-white text-center">
+                        <div className="relative flex items-center justify-center ">
+                          <span>{item.username}</span>
+                          <div
+                            className="size-7 cursor-pointer absolute top-0 right-0 text-gray-500"
+                            onClick={() => {
+                              copyText(item.username);
+                            }}
+                          >
+                            copy
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-2 border border-white text-center">
+                        <div className="relative flex items-center justify-center ">
+                          <span>{item.password}</span>
+                          <div
+                            className=" size-7 cursor-pointer absolute top-0 right-0 text-gray-500"
+                            onClick={() => {
+                              copyText(item.password);
+                            }}
+                          >
+                            copy
+                          </div>
+                        </div>
+                      </td>
+                      <td className="justify-center py-2 border border-white text-center">
+                        {/* Edit Button  */}
+                        <span
+                          className="cursor-pointer mx-1"
+                          onClick={() => {editPassword(item.id);}}
+                        >
+                          <lord-icon
+                            src="https://cdn.lordicon.com/gwlusjdu.json"
+                            trigger="hover"
+                            style={{ width: "25px", height: "25px" }}
+                          ></lord-icon>
+                        </span>
+
+                        {/* Delete Button  */}
+                        <span
+                          className="cursor-pointer mx-1"
+                          onClick={() => {deletePassword(item.id);}}
+                        >
+                          <lord-icon
+                            src="https://cdn.lordicon.com/skkahier.json"
+                            trigger="hover"
+                            style={{ width: "25px", height: "25px" }}
+                          ></lord-icon>
+                        </span>
+                      </td>
+                    </tr>
+                  );
                 })}
               </tbody>
             </table>
-          }
+          )}
         </div>
-      </div> */}
-
-
-<div className="passwords">
-                    <h2 className='font-bold text-2xl py-4'>Your Passwords</h2>
-                    {passwordArray.length === 0 && <div> No passwords to show</div>}
-                    {passwordArray.length != 0 && <table className="table-auto w-full rounded-md overflow-hidden mb-10">
-                        <thead className='bg-green-800 text-white'>
-                            <tr>
-                                <th className='py-2'>Site</th>
-                                <th className='py-2'>Username</th>
-                                <th className='py-2'>Password</th>
-                                <th className='py-2'>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className='bg-green-100'>
-                            {passwordArray.map((item, index) => {
-                                return <tr key={index}>
-                                    <td className='py-2 border border-white text-center'>
-                                        <div className=' relative flex items-center justify-center '>
-                                            <a href={item.site} target='_blank'>{item.site}</a>
-                                            <div className='size-7 cursor-pointer absolute top-0 right-0 text-gray-500' onClick={() => { copyText(item.site) }}>
-                                                copy
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className='py-2 border border-white text-center'>
-                                        <div className='relative flex items-center justify-center '>
-                                            <span>{item.username}</span>
-                                            <div className='size-7 cursor-pointer absolute top-0 right-0 text-gray-500' onClick={() => { copyText(item.username) }}>
-                                                copy
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className='py-2 border border-white text-center'>
-                                        <div className='relative flex items-center justify-center '>
-                                            <span>{item.password}</span>
-                                            <div className=' size-7 cursor-pointer absolute top-0 right-0 text-gray-500' onClick={() => { copyText(item.password) }}>
-                                                copy
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className='justify-center py-2 border border-white text-center'>
-                                        <span className='cursor-pointer mx-1' onClick={()=>{editPassword(item.id)}}>
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/gwlusjdu.json"
-                                                trigger="hover"
-                                                style={{"width":"25px", "height":"25px"}}>
-                                            </lord-icon>
-                                        </span>
-                                        <span className='cursor-pointer mx-1'onClick={()=>{deletePassword(item.id)}}>
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/skkahier.json"
-                                                trigger="hover"
-                                                style={{"width":"25px", "height":"25px"}}>
-                                            </lord-icon>
-                                        </span>
-                                    </td>
-                                </tr>
-
-                            })}
-                        </tbody>
-                    </table>}
-                </div>
-            </div>
-
-
+      </div>
     </>
   );
 };

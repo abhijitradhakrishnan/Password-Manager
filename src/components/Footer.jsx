@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="bg-slate-800 text-white flex flex-row justify-around items-center fixed bottom-0 w-full">
+    <div className="bg-slate-800 text-white flex flex-row justify-around items-center w-full">
       <div className="flex justify-center items-center">
         Create with <img className="w-7 mx-2" src="icons/heart.png" alt="heart-emoji" /> by Abhi
       </div>
