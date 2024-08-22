@@ -38,7 +38,6 @@ const Manager = () => {
   // Saving Password - on local storage
   const savePaswsword = () => {
     if(form.site.length > 0 && form.username.length > 0 && form.password.length > 3) {
-
       setPasswordArray([...passwordArray, { ...form, id: uuidv4() }]);
       localStorage.setItem("passwords", JSON.stringify([...passwordArray, { ...form, id: uuidv4() }]));
       console.log(passwordArray);
@@ -61,7 +60,7 @@ const Manager = () => {
   // Edit Password
   const editPassword = (id) => {
     console.log("Editing password with id", id);
-    setForm(passwordArray.filter(i=>i.id===id)[0])
+    setForm({...passwordArray.filter(i=>i.id===id)[0], id: id})
     setPasswordArray(passwordArray.filter(item=>item.id!==id))
   };
   
@@ -248,7 +247,7 @@ const Manager = () => {
                       </td>
                       <td className="py-2 border border-white text-center">
                         <div className="relative flex items-center justify-center ">
-                          <span>{item.password}</span>
+                          <span>{"*".repeat(item.password.length)}</span>
                           <div
                             className=" size-7 cursor-pointer absolute top-0 right-0 text-gray-500"
                             onClick={() => {
